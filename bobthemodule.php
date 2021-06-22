@@ -40,6 +40,7 @@ class BobTheModule extends Module //It can just as well extend any class derived
         if (!parent::install() ||
             !$this->registerHook('leftColumn') ||
             !$this->registerHook('header') ||
+            !$this->registerHook('actionFrontControllerSetMedia') ||
             !Configuration::updateValue('MYMODULE_NAME', 'Bob') ||
             !Configuration::updateValue('BOBDOGNAME', 'Rocky') ||
             !Configuration::updateValue('BOBCATNAME', 'Fritz')
@@ -181,5 +182,44 @@ class BobTheModule extends Module //It can just as well extend any class derived
         $helper->fields_value['BOBCATNAME'] = Tools::getValue('BOBCATNAME', Configuration::get('BOBCATNAME'));
 
         return $helper->generateForm($fieldsForm);
+    }
+
+    public function hookDisplayLeftColumn($params)
+    {
+        $this->context->smarty->assign([
+            'my_module_name' => Configuration::get('MYMODULE_NAME'),
+            'bob_dog_name' => Configuration::get('BOBDOGNAME'),
+            'bob_cat_name' => Configuration::get('BOBCATNAME'),
+            'my_module_link' => $this->context->link->getModuleLink('bobthemodule', 'display'),
+            'my_module_message' => $this->l('This is a super simple text message') // Do not forget to enclose your strings in the l() translation method
+        ]);
+
+        return $this->display(__FILE__, 'bobthemodule.tpl');
+    }
+
+    public function hookDisplayRightColumn($params)
+    {
+        return $this->hookDisplayLeftColumn($params);
+    }
+
+    public function hookActionFrontControllerSetMedia()
+    {
+        $this->context->controller->registerStylesheet(
+            'bobthemodule-style',
+            $this->_path.'views/css/bobthemodule.css',
+            [
+                'media' => 'all',
+                'priority' => 1000,
+            ]
+        );
+
+        $this->context->controller->registerJavascript(
+            'bobthemodule-javascript',
+            $this->_path.'views/js/bobthemodule.js',
+            [
+                'position' => 'bottom',
+                'priority' => 1000,
+            ]
+        );
     }
 }
